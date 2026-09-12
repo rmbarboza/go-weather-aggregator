@@ -1,0 +1,9 @@
+.git
+.github
+.env
+git.token
+Dockerfile
+.dockerignore
+README.md
+gofirstproject
+*.exe
