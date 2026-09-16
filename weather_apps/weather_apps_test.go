@@ -71,3 +71,102 @@ func TestOpenWeatherMapReturnsWhenContextIsCanceled(t *testing.T) {
 		t.Fatal("OpenWeatherMap did not return after context cancellation")
 	}
 }
+
+func TestOpenWeatherMapReturnsErrorForNonSuccessStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("{}"))
+	}))
+	defer server.Close()
+
+	provider := OpenWeatherMap{
+		APIKey:  "test-key",
+		BaseURL: server.URL,
+	}
+
+	_, err := provider.Temperature(context.Background(), "tokyo")
+
+	if err == nil {
+		t.Fatal("error should not be nil")
+	}
+}
+
+func TestWeatherUndergroundReturnsErrorForNonSuccessStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("{}"))
+	}))
+	defer server.Close()
+
+	provider := WeatherUnderground{
+		APIKey:  "test-key",
+		BaseURL: server.URL,
+	}
+
+	_, err := provider.Temperature(context.Background(), "tokyo")
+
+	if err == nil {
+		t.Fatal("error should not be nil")
+	}
+}
+
+func TestWeatherAPIReturnsTemperatureInKelvin(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got, want := r.Method, "GET"; got != want {
+			t.Errorf("invalid request method %v, want %v", got, want)
+		}
+
+		if got, want := r.URL.Path, "/v1/current.json"; got != want {
+			t.Errorf("invalid request path %v, want %v", got, want)
+		}
+
+		if got, want := r.URL.Query().Get("key"), "test-key"; got != want {
+			t.Errorf("invalid key %v, want %v", got, want)
+		}
+
+		if got, want := r.URL.Query().Get("q"), "São Paulo"; got != want {
+			t.Errorf("invalid q %v, want %v", got, want)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"current":{"temp_c":20.0}}`))
+	}))
+	defer server.Close()
+
+	provider := WeatherAPI{
+		APIKey:  "test-key",
+		BaseURL: server.URL,
+	}
+
+	wantTemp := 293.15
+
+	temp, err := provider.Temperature(context.Background(), "São Paulo")
+
+	if err != nil {
+		t.Fatalf("request returned with error %v", err)
+	}
+
+	if temp != wantTemp {
+		t.Errorf("request returned temp %f, want %f", temp, wantTemp)
+	}
+}
+
+func TestWeatherAPIReturnsErrorForNonSuccessStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("{}"))
+	}))
+	defer server.Close()
+
+	provider := WeatherAPI{
+		APIKey:  "test-key",
+		BaseURL: server.URL,
+	}
+
+	_, err := provider.Temperature(context.Background(), "São Paulo")
+
+	if err == nil {
+		t.Fatal("error should not be nil")
+	}
+}
