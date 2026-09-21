@@ -15,7 +15,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-import weatherapps "github.com/rmbarboza/gofirstproject/weather_apps"
+import weatherapps "github.com/rmbarboza/go-weather-aggregator/weather_apps"
 
 func configuredProviders(openWeatherMapAPIKey string, weatherAPIKey string) (weatherapps.MultiWeatherProvider, error) {
 	var providers weatherapps.MultiWeatherProvider

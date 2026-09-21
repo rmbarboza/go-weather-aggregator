@@ -5,5 +5,5 @@ git.token
 Dockerfile
 .dockerignore
 README.md
-gofirstproject
+go-weather-aggregator
 *.exe

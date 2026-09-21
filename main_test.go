@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-import weatherapps "github.com/rmbarboza/gofirstproject/weather_apps"
+import weatherapps "github.com/rmbarboza/go-weather-aggregator/weather_apps"
 
 func TestHealthEndpoint(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
