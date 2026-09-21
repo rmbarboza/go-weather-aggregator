@@ -61,9 +61,9 @@ func newMux(mw weatherapps.MultiWeatherProvider, requestTimeout time.Duration) *
 		temp, err := mw.Temperature(ctx, city)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				http.Error(w, err.Error(), http.StatusGatewayTimeout)
+				http.Error(w, "weather request timed out", http.StatusGatewayTimeout)
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, "failed to get weather", http.StatusInternalServerError)
 			}
 			return
 		}

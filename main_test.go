@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -111,5 +114,65 @@ func TestConfiguredProviders(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+type providerReturningSecretError struct{}
+
+func (providerReturningSecretError) Temperature(_ context.Context, _ string) (float64, error) {
+	return 0, errors.New("segredo-de-teste")
+}
+
+func TestWeatherEndpointDoesNotExposeProviderError(t *testing.T) {
+	mw := weatherapps.MultiWeatherProvider{
+		providerReturningSecretError{},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/weather/Recife", nil)
+	rec := httptest.NewRecorder()
+
+	wantCode := http.StatusInternalServerError
+	wantError := "segredo-de-teste"
+
+	mux := newMux(mw, 3*time.Second)
+
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != wantCode {
+		t.Fatalf("GET /weather/Recife returned code: %v; want %v", rec.Code, wantCode)
+	}
+
+	if strings.Contains(rec.Body.String(), wantError) {
+		t.Fatalf("response exposed provider key: %q", rec.Body.String())
+	}
+}
+
+type providerReturningSecretDeadlineError struct{}
+
+func (providerReturningSecretDeadlineError) Temperature(_ context.Context, _ string) (float64, error) {
+	return 0, fmt.Errorf("segredo-de-teste: %w", context.DeadlineExceeded)
+}
+
+func TestWeatherEndpointDoesNotExposeProviderErrorOnTimeout(t *testing.T) {
+	mw := weatherapps.MultiWeatherProvider{
+		providerReturningSecretDeadlineError{},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/weather/Recife", nil)
+	rec := httptest.NewRecorder()
+
+	wantCode := http.StatusGatewayTimeout
+	wantError := "segredo-de-teste"
+
+	mux := newMux(mw, 3*time.Second)
+
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != wantCode {
+		t.Fatalf("GET /weather/Recife returned code: %v; want %v", rec.Code, wantCode)
+	}
+
+	if strings.Contains(rec.Body.String(), wantError) {
+		t.Fatalf("response exposed provider key: %q", rec.Body.String())
 	}
 }
