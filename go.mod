@@ -1,4 +1,4 @@
-module github.com/rmbarboza/gofirstproject
+module github.com/rmbarboza/go-weather-aggregator
 
 go 1.26.5
 
