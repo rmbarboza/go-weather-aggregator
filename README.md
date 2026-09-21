@@ -1,4 +1,4 @@
-# gofirstproject
+# Weather Aggregator
 First little project in Go
 
 Concurrent multi-provider weather API in Go with timeouts, graceful shutdown, CI, and Docker.
