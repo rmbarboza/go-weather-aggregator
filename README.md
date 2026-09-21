@@ -3,6 +3,15 @@ First little project in Go
 
 Concurrent multi-provider weather API in Go with timeouts, graceful shutdown, CI, and Docker.
 
+## Project context
+
+This portfolio project was developed during a structured Go backend
+learning program. It demonstrates concurrency, HTTP APIs, automated
+testing, graceful shutdown, structured logging, CI, and containerization.
+
+It is not presented as professional production experience, but its
+design and validation follow production-oriented practices.
+
 ## Current aggregation policy
 
 1. Every configured provider is queried concurrently.
